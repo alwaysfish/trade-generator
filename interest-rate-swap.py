@@ -4,7 +4,6 @@ import QuantLib as ql
 from datetime import timedelta, date, datetime
 import uuid
 
-
 params_irs = {
     'start_date': '02/01/2013',
     'n_trades_day': 100,            # expected average number of trades per day
@@ -51,8 +50,13 @@ def daterange(start_date, end_date, calendar):
             yield start_date + timedelta(n)
 
 
-def next_business_day(start_date, shift=0):
-    return start_date
+def adjust_start_date(data):
+    uk_calendar = ql.UnitedKingdom()
+    adj_dates = [uk_calendar.advance(ql.Date.from_date(x[0]),
+                                     ql.Period(params_irs['currencies'][x[1]], ql.Days),
+                                     ql.Following).to_date()
+                 for x in data[['Trade Date', 'Currency']].values]
+    return adj_dates
 
 
 def generate_maturity_dates(data):
@@ -89,8 +93,8 @@ def generate_trades(data):
                         for x in np.random.randint(0, len(params_irs['currencies']), n_rows)]
 
     print('Generating Start Date')
+    data['Start Date'] = adjust_start_date(data)
     data['Start Date'] = data['Start Date'].astype('datetime64')
-    data['Start Date'] = next_business_day(data['Trade Date'])
 
     print('Generating Tenure')
     data['Tenure'] = data['Tenure'].astype('float64')
@@ -120,6 +124,8 @@ def generate_trades(data):
     # remove all trades that already matured
     today = date.today()
     data = data[(data['Maturity Date'].dt.date - today).dt.days > 0]
+
+    return data
 
 
 def main():
@@ -151,7 +157,7 @@ def main():
     print('{} trades will be generated'.format(np.sum(num_trades_each_day)))
 
     # populate data for every trade
-    generate_trades(data)
+    data = generate_trades(data)
 
     print(data.dtypes)
 
