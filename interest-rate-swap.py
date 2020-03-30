@@ -14,7 +14,7 @@ params_irs = {
         'GBP': 0,
         'USD': 2
     },
-    'tenure': list(range(1, 10)),         # all possible tenures in years
+    'tenure': list(range(1, 10)),   # all possible tenures in years
     'leg': ['Fixed', 'Float'],      # different leg types
     'float_rate': ['3M', '6M', '9M', '12M'],
     'daycount': ['act/360'],        # different day counts that can be applied
